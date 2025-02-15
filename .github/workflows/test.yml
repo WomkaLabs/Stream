@@ -1,0 +1,28 @@
+name: daily-crypto-test
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.0
+
+      - name: setup
+        id: setup
+        run: |
+          python3 -m pip install -r requirements.txt
+
+      - name: pad-data
+        run: |
+          date_data_fr=$(python3 -c "from core.data.util import * ; print(get_datetime_fr_of('data/upbit-btc-240-chart.csv').isoformat())")
+          date_data_to=$(python3 -c "from core.data.util import * ; print(get_datetime_to_of('data/upbit-btc-240-chart.csv').isoformat())")
+          python3 -m bin.data.pad --datetime_fr $date_data_fr --datetime_to $date_data_to --data_glob_pattern "data/*.csv"
+
+      - name: test-data
+        id: test-data
+        run: |
+          python3 -m unittest test/data.py
